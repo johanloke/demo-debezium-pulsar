@@ -1,0 +1,88 @@
+services:
+
+  postgres:
+    image: postgres:16-bullseye
+    container_name: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - pulsar
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  pulsar:
+    image: apachepulsar/pulsar:3.2.3
+    container_name: pulsar
+    command: >
+      bin/pulsar standalone
+    healthcheck:
+      test: ["CMD-SHELL", "bin/pulsar-admin brokers healthcheck || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - pulsar
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+    restart: always
+#    volumes:
+#      - ./pulsar-data:/pulsar/data
+
+  debezium-server:
+    image: debezium/server:nightly
+    container_name: debezium-server
+    environment:
+      DEBEZIUM_SINK_TYPE: pulsar
+      debezium.sink.pulsar.client.serviceUrl: http://pulsar:6650
+      DEBEZIUM_SOURCE_CONNECTOR_CLASS: io.debezium.connector.postgresql.PostgresConnector
+      DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME: data/offsets.dat
+      DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
+      DEBEZIUM_SOURCE_DATABASE_HOSTNAME: postgres
+      DEBEZIUM_SOURCE_DATABASE_PORT: 5432
+      DEBEZIUM_SOURCE_DATABASE_USER: myuser
+      DEBEZIUM_SOURCE_DATABASE_PASSWORD: mypassword
+      DEBEZIUM_SOURCE_DATABASE_DBNAME: mydatabase
+      DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: myserver
+#      debezium.source.schema.whitelist: inventory
+      DEBEZIUM_SOURCE_PLUGIN_NAME: pgoutput
+      QUARKUS_LOG_CONSOLE_JSON: false
+      QUARKUS_LOG_LEVEL: DEBUG
+      QUARKUS_LOG_CATEGORY__IO_DEBEZIUM__LEVEL: DEBUG
+      QUARKUS_LOG_CATEGORY__IO_QUARKUS__LEVEL: DEBUG
+      QUARKUS_LOG_CATEGORY__JAVA_UTIL__LEVEL: DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pulsar:
+        condition: service_healthy
+    networks:
+      - pulsar
+    ports:
+      - "8083:8083" # Expose Debezium Server port if needed for monitoring or REST API access
+    volumes:
+      - ./debezium-data:/data
+
+  debezium-ui:
+    image: debezium/debezium-ui:latest
+    container_name: debezium-ui
+    environment:
+      - UI_BACKEND_URL=http://debezium-server:8083
+    depends_on:
+      - debezium-server
+    ports:
+      - "8084:8080"
+
+networks:
+  pulsar:
+    driver: bridge
