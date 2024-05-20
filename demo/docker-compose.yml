@@ -8,8 +8,8 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
-      interval: 20s
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d mydatabase" ]
+      interval: 10s
       timeout: 10s
       retries: 5
     networks:
@@ -18,6 +18,7 @@ services:
       - "5432:5432"
     restart: always
     volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./pgdata:/var/lib/postgresql/data
 
   pulsar:
@@ -25,8 +26,11 @@ services:
     container_name: pulsar
     command: >
       bin/pulsar standalone
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "bin/pulsar-admin brokers healthcheck || exit 1"]
+      test: [ "CMD-SHELL", "bin/pulsar-admin brokers healthcheck || exit 1" ]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -36,15 +40,15 @@ services:
       - "6650:6650"
       - "8080:8080"
     restart: always
-#    volumes:
-#      - ./pulsar-data:/pulsar/data
+    volumes:
+      - ./pulsar-data:/pulsar/data
 
   debezium-server:
     image: debezium/server:nightly
     container_name: debezium-server
     environment:
       DEBEZIUM_SINK_TYPE: pulsar
-      debezium.sink.pulsar.client.serviceUrl: http://pulsar:6650
+#      debezium.sink.pulsar.client.serviceUrl: pulsar://pulsar:6650
       DEBEZIUM_SOURCE_CONNECTOR_CLASS: io.debezium.connector.postgresql.PostgresConnector
       DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME: data/offsets.dat
       DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
@@ -54,16 +58,10 @@ services:
       DEBEZIUM_SOURCE_DATABASE_PASSWORD: mypassword
       DEBEZIUM_SOURCE_DATABASE_DBNAME: mydatabase
       DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: myserver
-#      debezium.source.schema.whitelist: inventory
+      DEBEZIUM_SOURCE_TOPIC_PREFIX: bizevents
       DEBEZIUM_SOURCE_PLUGIN_NAME: pgoutput
       QUARKUS_LOG_CONSOLE_JSON: false
-      QUARKUS_LOG_LEVEL: DEBUG
-      QUARKUS_LOG_CATEGORY__IO_DEBEZIUM__LEVEL: DEBUG
-      QUARKUS_LOG_CATEGORY__IO_QUARKUS__LEVEL: DEBUG
-      QUARKUS_LOG_CATEGORY__JAVA_UTIL__LEVEL: DEBUG
     depends_on:
-      postgres:
-        condition: service_healthy
       pulsar:
         condition: service_healthy
     networks:
@@ -71,17 +69,8 @@ services:
     ports:
       - "8083:8083" # Expose Debezium Server port if needed for monitoring or REST API access
     volumes:
-      - ./debezium-data:/data
-
-  debezium-ui:
-    image: debezium/debezium-ui:latest
-    container_name: debezium-ui
-    environment:
-      - UI_BACKEND_URL=http://debezium-server:8083
-    depends_on:
-      - debezium-server
-    ports:
-      - "8084:8080"
+      - ./debezium-data:/debezium/data
+      - ./conf:/debezium/conf
 
 networks:
   pulsar:
