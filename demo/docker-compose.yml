@@ -43,12 +43,37 @@ services:
     volumes:
       - ./pulsar-data:/pulsar/data
 
+  pulsar-manager:
+    image: apachepulsar/pulsar-manager:latest
+    container_name: pulsar-manager
+    depends_on:
+      - pulsar
+    environment:
+      SPRING_CONFIGURATION_FILE: /pulsar-manager/pulsar-manager/application.properties
+    networks:
+      - pulsar
+    ports:
+      - "9527:9527"
+      - "7750:7750"
+#    volumes:
+#      - ./pulsar-manager/bin:/usr/local/bin
+
+  init:
+    image: appropriate/curl
+    container_name: init
+    depends_on:
+      - pulsar-manager
+    entrypoint: ["sh", "/init.sh"]
+    networks:
+      - pulsar
+    volumes:
+      - ./init/set-pulsar-manager-credential.sh:/init.sh
+
   debezium-server:
-    image: debezium/server:nightly
+    image: debezium/server:2.7
     container_name: debezium-server
     environment:
       DEBEZIUM_SINK_TYPE: pulsar
-#      debezium.sink.pulsar.client.serviceUrl: pulsar://pulsar:6650
       DEBEZIUM_SOURCE_CONNECTOR_CLASS: io.debezium.connector.postgresql.PostgresConnector
       DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME: data/offsets.dat
       DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
@@ -61,16 +86,17 @@ services:
       DEBEZIUM_SOURCE_TOPIC_PREFIX: bizevents
       DEBEZIUM_SOURCE_PLUGIN_NAME: pgoutput
       QUARKUS_LOG_CONSOLE_JSON: false
+      QUARKUS_LOG_CATEGORY__ORG_MY__LEVEL: DEBUG
     depends_on:
       pulsar:
         condition: service_healthy
     networks:
       - pulsar
     ports:
-      - "8083:8083" # Expose Debezium Server port if needed for monitoring or REST API access
+      - "8083:8080" # Expose Debezium Server port if needed for monitoring or REST API access
     volumes:
-      - ./debezium-data:/debezium/data
-      - ./conf:/debezium/conf
+      - ./debezium/data:/debezium/data
+      - ./debezium/conf:/debezium/conf
 
 networks:
   pulsar:
