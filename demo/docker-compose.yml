@@ -65,7 +65,7 @@ services:
       - pulsar-manager
     entrypoint: ["sh", "/init.sh"]
     networks:
-      - pulsar-manager
+      - pulsar
     volumes:
       - ./init/set-pulsar-manager-credential.sh:/init.sh
 
