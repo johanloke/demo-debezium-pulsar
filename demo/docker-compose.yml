@@ -58,8 +58,8 @@ services:
     ports:
       - "9527:9527"
       - "7750:7750"
-#    volumes:
-#      - ./pulsar-manager/bin:/usr/local/bin
+    volumes:
+      - ./pulsar-manager-dbdata:/pulsar-manager/pulsar-manager/dbdata
 
   init:
     image: appropriate/curl
