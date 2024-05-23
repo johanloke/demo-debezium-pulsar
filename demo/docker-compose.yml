@@ -18,7 +18,7 @@ services:
       - "5432:5432"
     restart: always
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./pgdata:/var/lib/postgresql/data
 
   pulsar:
@@ -29,11 +29,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      PULSAR_STANDALONE_USE_ZOOKEEPER: 1
     healthcheck:
-      test: [ "CMD-SHELL", "bin/pulsar-admin brokers healthcheck || exit 1" ]
-      interval: 20s
+      test: ["CMD", "curl", "-f", "http://localhost:8080/admin/v2/brokers/health"]
+      interval: 60s
       timeout: 10s
-      retries: 5
     networks:
       - pulsar
     ports:
@@ -42,6 +43,8 @@ services:
     restart: always
     volumes:
       - ./pulsar-data:/pulsar/data
+      - ./pulsar-logs:/pulsar/logs
+      - ./pulsar-tmp:/pulsar/tmp
 
   pulsar-manager:
     image: apachepulsar/pulsar-manager:latest
@@ -63,9 +66,11 @@ services:
     container_name: init
     depends_on:
       - pulsar-manager
-    entrypoint: ["sh", "/init.sh"]
+    entrypoint: ["sh", "-c", "sleep infinity"]
+#    entrypoint: ["sh", "/init.sh"] # Uncomment to set the username and password to admin:apachepulsar, Comment after its ran first time
     networks:
       - pulsar
+    restart: no
     volumes:
       - ./init/set-pulsar-manager-credential.sh:/init.sh
 
@@ -74,6 +79,7 @@ services:
     container_name: debezium-server
     environment:
       DEBEZIUM_SINK_TYPE: pulsar
+      DEBEZIUM_SINK_PULSAR_NAMESPACE: local
       DEBEZIUM_SOURCE_CONNECTOR_CLASS: io.debezium.connector.postgresql.PostgresConnector
       DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME: data/offsets.dat
       DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0

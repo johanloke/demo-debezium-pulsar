@@ -21,5 +21,3 @@ echo "$OUTPUT"
 
 # Exit the script
 exit 0
-## Keep the container running
-#tail -f /dev/null

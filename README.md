@@ -6,7 +6,15 @@ Username: `admin`
 
 Password: `apachepulsar`
 
-![pulsar-manager-config.png](demo/pics/pulsar-manager-config.png)
+Create a new environment with the following confio
+
+Environment name: `local`
+
+Service URL: `http://pulsar:8080`
+
+Bookie URL: `http://pulsar:6650`
+
+![pulsar-manager-config.png](pics/pulsar-manager-config.png)
 
 More instruction to configure can be found here
 https://github.com/apache/pulsar-manager/tree/master?tab=readme-ov-file#configure-environment
