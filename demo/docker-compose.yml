@@ -79,7 +79,7 @@ services:
     container_name: debezium-server
     environment:
       DEBEZIUM_SINK_TYPE: pulsar
-      DEBEZIUM_SINK_PULSAR_NAMESPACE: local
+      DEBEZIUM_SINK_PULSAR_NAMESPACE: default
       DEBEZIUM_SOURCE_CONNECTOR_CLASS: io.debezium.connector.postgresql.PostgresConnector
       DEBEZIUM_SOURCE_OFFSET_STORAGE_FILE_FILENAME: data/offsets.dat
       DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
@@ -101,8 +101,8 @@ services:
     ports:
       - "8083:8080" # Expose Debezium Server port if needed for monitoring or REST API access
     volumes:
-      - ./debezium/data:/debezium/data
       - ./debezium/conf:/debezium/conf
+      - ./debezium-data:/debezium/data
 
 networks:
   pulsar:
