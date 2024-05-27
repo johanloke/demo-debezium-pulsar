@@ -4,11 +4,11 @@ services:
     image: postgres:16-bullseye
     container_name: postgres
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pgdb
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U myuser -d mydatabase" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d pgdb" ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -85,11 +85,11 @@ services:
       DEBEZIUM_SOURCE_OFFSET_FLUSH_INTERVAL_MS: 0
       DEBEZIUM_SOURCE_DATABASE_HOSTNAME: postgres
       DEBEZIUM_SOURCE_DATABASE_PORT: 5432
-      DEBEZIUM_SOURCE_DATABASE_USER: myuser
-      DEBEZIUM_SOURCE_DATABASE_PASSWORD: mypassword
-      DEBEZIUM_SOURCE_DATABASE_DBNAME: mydatabase
-      DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: myserver
-      DEBEZIUM_SOURCE_TOPIC_PREFIX: bizevents
+      DEBEZIUM_SOURCE_DATABASE_USER: postgres
+      DEBEZIUM_SOURCE_DATABASE_PASSWORD: password
+      DEBEZIUM_SOURCE_DATABASE_DBNAME: pgdb
+      DEBEZIUM_SOURCE_DATABASE_SERVER_NAME: pgserver
+      DEBEZIUM_SOURCE_TOPIC_PREFIX: local
       DEBEZIUM_SOURCE_PLUGIN_NAME: pgoutput
       QUARKUS_LOG_CONSOLE_JSON: false
       QUARKUS_LOG_CATEGORY__ORG_MY__LEVEL: DEBUG
