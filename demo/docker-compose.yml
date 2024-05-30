@@ -2,7 +2,6 @@ services:
 
   postgres:
     image: postgres:16-bullseye
-    container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -23,7 +22,6 @@ services:
 
   pulsar:
     image: apachepulsar/pulsar:3.2.3
-    container_name: pulsar
     command: >
       bin/pulsar standalone
     depends_on:
@@ -48,7 +46,6 @@ services:
 
   pulsar-manager:
     image: apachepulsar/pulsar-manager:latest
-    container_name: pulsar-manager
     depends_on:
       - pulsar
     environment:
@@ -63,7 +60,6 @@ services:
 
   init:
     image: appropriate/curl
-    container_name: init
     depends_on:
       - pulsar-manager
     entrypoint: ["sh", "-c", "sleep infinity"]
@@ -76,7 +72,6 @@ services:
 
   debezium-server:
     image: debezium/server:2.7
-    container_name: debezium-server
     environment:
       DEBEZIUM_SINK_TYPE: pulsar
       DEBEZIUM_SINK_PULSAR_NAMESPACE: default

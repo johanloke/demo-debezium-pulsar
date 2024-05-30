@@ -6,7 +6,7 @@ CREATE TABLE public.student (
 );
 
 -- Set the replica identity to use the primary key
-ALTER TABLE public.student REPLICA IDENTITY DEFAULT;
+ALTER TABLE public.student REPLICA IDENTITY FULL;
 
 INSERT INTO public.student ("name") VALUES
     ('Ali');
