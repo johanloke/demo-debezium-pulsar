@@ -15,7 +15,6 @@ services:
       - pulsar
     ports:
       - "5432:5432"
-    restart: always
     volumes:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./pgdata:/var/lib/postgresql/data
@@ -38,7 +37,6 @@ services:
     ports:
       - "6650:6650"
       - "8080:8080"
-    restart: always
     volumes:
       - ./pulsar-data:/pulsar/data
       - ./pulsar-logs:/pulsar/logs
