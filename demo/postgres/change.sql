@@ -2,7 +2,7 @@
 CREATE TABLE public.student (
                                 id int GENERATED ALWAYS AS IDENTITY NOT NULL,
                                 "name" varchar NOT NULL,
-                                postal_code int2 NULL,
+                                postal_code int NULL,
                                 address varchar NULL,
                                 grade varchar NULL,
                                 gender varchar NULL,
