@@ -1,7 +1,11 @@
 -- Create the table with primary key
 CREATE TABLE public.student (
                                 id int GENERATED ALWAYS AS IDENTITY NOT NULL,
-                                name varchar NOT NULL,
+                                "name" varchar NOT NULL,
+                                postal_code int2 NULL,
+                                address varchar NULL,
+                                grade varchar NULL,
+                                gender varchar NULL,
                                 CONSTRAINT student_pkey PRIMARY KEY (id)
 );
 
