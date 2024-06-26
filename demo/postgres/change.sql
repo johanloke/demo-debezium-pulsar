@@ -2,10 +2,12 @@
 CREATE TABLE public.student (
                                 id int GENERATED ALWAYS AS IDENTITY NOT NULL,
                                 "name" varchar NOT NULL,
+                                dob date NULL,
                                 postal_code int NULL,
                                 address varchar NULL,
                                 grade varchar NULL,
                                 gender varchar NULL,
+                                utc_created_at timestamp DEFAULT timezone('UTC'::text, CURRENT_TIMESTAMP) NULL,
                                 CONSTRAINT student_pkey PRIMARY KEY (id)
 );
 
