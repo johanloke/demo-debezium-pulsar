@@ -1,0 +1,6 @@
+/demo/debezium-data/
+/demo/pulsar-data/
+/demo/pulsar-logs/
+/demo/pulsar-manager-dbdata/
+/demo/pulsar-tmp/
+/demo/pgdata/
